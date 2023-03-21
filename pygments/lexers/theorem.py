@@ -12,7 +12,263 @@ from pygments.lexer import RegexLexer, default, words
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
     Number, Punctuation, Generic, Whitespace
 
-__all__ = ['CoqLexer', 'IsabelleLexer', 'LeanLexer']
+__all__ = ['CoqLexer', 'IsabelleLexer', 'LeanLexer', 'SquirrelLexer']
+
+class SquirrelLexer(RegexLexer):
+    """
+    For the Squirrel protocol prover.
+
+    .. versionadded:: 1.5
+    """
+
+    name = 'Squirrel'
+    url = 'https://squirrel-prover.github.io/'
+    aliases = ['squirrel']
+    filenames = ['*.sp']
+    mimetypes = ['text/x-squirrel']
+
+    flags = 0 # no re.MULTILINE
+
+    keywords_prog = (
+        # Gallina prog OK
+        "let",
+        "in",
+        "out",
+        "if",
+        "then",
+        "else",
+        "fun",
+        "new",
+        "try find",
+        "such that",
+        'forall', 'exists'
+    )
+
+    keywords_glob = (
+        # Vernacular commands global OK
+        "include",
+        "set",
+        "axiom",
+        "goal",
+        "global",
+        "local",
+        "Proof",
+        "Qed",
+        "equiv",
+        "any",
+    )
+
+    keywords_dangerous = (
+        # dangerous OK
+        "Abort",
+        "admit",
+    )
+
+    keywords_decl = (
+        # decl OK
+        "aenc",
+        "signature",
+        "hash",
+        "senc",
+        "abstract",
+        "op",
+        "system",
+        "type",
+        "name",
+        "action",
+        "channel",
+        "mutable",
+        "process",
+        "with oracle",
+        "with hash",
+        "where",
+    )
+
+    keywords_fun = (
+        # fun OK
+        "input",
+        "cond",
+        "output",
+        "exec",
+        "frame",
+        "seq",
+        "diff",
+        "happens",
+        "len",
+        "xor",
+    )
+
+    keywords_type = (
+        # Sorts
+        "index",
+        "message",
+        "boolean",
+        "bool",
+        "timestamp",
+        "large",
+        "name_fixed_length",
+    )
+
+    keywords_tactic = (
+        # Tactics OK
+        "anyintro",
+        "use",
+        "with",
+        "assert",
+        "trans",
+        "sym",
+        "have",
+        "case",
+        "collision",
+        "depends",
+        "eqnames",
+        "eqtraces",
+        "euf",
+        "executable",
+        "exists",
+        "Exists",
+        "splitseq",
+        "remember",
+        "expand",
+        "fresh",
+        "forall",
+        "Forall",
+        "help",
+        "id",
+        "cs",
+        "clear",
+        "prof",
+        "induction",
+        "intro",
+        "apply",
+        "generalize",
+        "dependent",
+        "revert",
+        "destruct",
+        "as",
+        "left",
+        "notleft",
+        "print",
+        "search",
+        "project",
+        "right",
+        "simpl",
+        "reduce",
+        "simpl_left",
+        "split",
+        "subst",
+        "rewrite",
+        "true",
+        "cca1",
+        "ddh",
+        "gdh",
+        "cdh",
+        "enckp",
+        "enrich",
+        "equivalent",
+        "expandall",
+        "fa",
+        "show",
+        "deduce",
+        "fresh",
+        "prf",
+        "trivialif",
+        "xor",
+        "intctxt",
+        "splitseq",
+        "constseq",
+        "localize",
+        "memseq",
+        "byequiv",
+        "diffeq",
+        "gcca",
+        "rename",
+        "gprf",
+    )
+
+    keywords_closing = (
+        # Closing OK
+        "by",
+        "assumption",
+        "congruence",
+        "constraints",
+        "auto",
+        "refl",
+        "hint",
+    )
+
+    keywords_tactical = (
+        # Control OK
+        "try",
+        "orelse",
+        "repeat",
+        "nosimpl",
+        "checkfail",
+        "exn",
+    )
+
+    keyopts = (
+        '!=', '#', '&', '&&', r'\(', r'\)', r'\*', r'\+', ',', '-', r'-\.',
+        '->', r'\.', r'\.\.', ':', '::', ':=', ':>', ';', ';;', '<', '<-',
+        '<->', '=', '>', '>]', r'>\}', r'\?', r'\?\?', r'\[', r'\[<', r'\[>',
+        r'\[\|', ']', '_', '`', r'\{', r'\{<', r'\|', r'\|]', r'\}', '~', '=>',
+        r'/\\', r'\\/', r'\{\|', r'\|\}',
+        # 'Π', 'Σ', # Not defined in the standard library
+        'λ', '¬', '∧', '∨', '∀', '∃', '→', '↔', '≠', '≤', '≥',
+    )
+    operators = r'[!$%&*+\./:<=>?@^|~-]'
+    prefix_syms = r'[!?~]'
+    infix_syms = r'[=<>@^|&+\*/$%-]'
+
+    tokens = {
+        'root': [
+            (r'\s+', Text),
+            (r'false|true|\(\)|\[\]', Name.Builtin.Pseudo),
+            (r'\(\*', Comment, 'comment'),
+            (r'\b(?:[^\W\d][\w\']*\.)+[^\W\d][\w\']*\b', Name),
+            (words(keywords_glob, prefix=r'\b', suffix=r'\b'), Keyword.Namespace),
+            (words(keywords_prog, prefix=r'\b', suffix=r'\b'), Keyword),
+            (words(keywords_type, prefix=r'\b', suffix=r'\b'), Keyword.Type),
+            (r'\b\'[a-z]*[a-z_\'1-9]*\b', Keyword.Type),
+            (words(keywords_dangerous, prefix=r'\b', suffix=r'\b'),Generic.Error),
+            (words(keywords_decl, prefix=r'\b', suffix=r'\b'),Keyword.Declaration),
+            (words(keywords_tactic, prefix=r'\b', suffix=r'\b'), Keyword),
+            (words(keywords_closing, prefix=r'\b', suffix=r'\b'), Keyword.Pseudo),
+            (words(keywords_tactical, prefix=r'\b', suffix=r'\b'), Keyword.Reserved),
+            (words(keywords_fun, prefix=r'\b', suffix=r'\b'), Name.Function),
+
+            (r'\b([A-Z][\w\']*)', Name),
+            (r'(%s)' % '|'.join(keyopts[::-1]), Operator),
+            (r'(%s|%s)?%s' % (infix_syms, prefix_syms, operators), Operator),
+
+            (r"[^\W\d][\w']*", Name),
+
+            (r'\d[\d_]*', Number.Integer),
+            (r'0[xX][\da-fA-F][\da-fA-F_]*', Number.Hex),
+            (r'0[oO][0-7][0-7_]*', Number.Oct),
+            (r'0[bB][01][01_]*', Number.Bin),
+            (r'-?\d[\d_]*(.[\d_]*)?([eE][+\-]?\d[\d_]*)', Number.Float),
+
+            (r"'(?:(\\[\\\"'ntbr ])|(\\[0-9]{3})|(\\x[0-9a-fA-F]{2}))'", String.Char),
+
+            (r"'.'", String.Char),
+            (r"'", Keyword),  # a stray quote is another syntax element
+
+            (r'[~?][a-z][\w\']*:', Name),
+            (r'\S', Name.Builtin.Pseudo),
+        ],
+        'comment': [
+            (r'[^(*)]+', Comment),
+            (r'\(\*', Comment, '#push'),
+            (r'\*\)', Comment, '#pop'),
+            (r'[(*)]', Comment),
+        ],
+    }
+
+    def analyse_text(text):
+        if 'Qed' in text and 'Proof' in text:
+            return 1
+
 
 
 class CoqLexer(RegexLexer):
