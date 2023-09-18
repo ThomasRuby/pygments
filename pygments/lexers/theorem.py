@@ -59,6 +59,7 @@ class SquirrelLexer(RegexLexer):
     keywords_dangerous = (
         "Abort",
         "admit",
+        "Reset",
     )
 
     keywords_decl = (
@@ -112,6 +113,7 @@ class SquirrelLexer(RegexLexer):
         "sym",
         "have",
         "case",
+        "const",
         "collision",
         "depends",
         "eqnames",
