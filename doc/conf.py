@@ -2,13 +2,16 @@
 # Pygments documentation build configuration file
 #
 
-import re, sys, os, itertools
+import os
+import re
+import sys
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('..'))
 
+# ruff: noqa: E402
 import pygments
 import pygments.formatters
 import pygments.lexers
@@ -38,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Pygments'
-copyright = '2006-2022, Georg Brandl and Pygments contributors'
+copyright = '2006-2024, Georg Brandl and Pygments contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -227,7 +230,7 @@ man_pages = [
 # Example configuration for intersphinx: refer to the Python standard library.
 #intersphinx_mapping = {'http://docs.python.org/': None}
 
-rst_prolog = '.. |language_count| replace:: {}'.format(len(list(pygments.lexers.get_all_lexers())))
+rst_prolog = f'.. |language_count| replace:: {len(list(pygments.lexers.get_all_lexers()))}'
 
 def pg_context(app, pagename, templatename, ctx, event_arg):
     ctx['demo_active'] = bool(os.environ.get('WEBSITE_BUILD'))
@@ -262,7 +265,8 @@ def pg_context(app, pagename, templatename, ctx, event_arg):
 
         # sort styles according to their background luminance (light styles first)
         # if styles have the same background luminance sort them by their name
-        sortkey = lambda s: (-s['bg_luminance'], s['name'])
+        def sortkey(s):
+            return (-s['bg_luminance'], s['name'])
         # the default style is always displayed first
         default_style = ctx['styles_aa'].pop(0)
         ctx['styles_aa'].sort(key=sortkey)
@@ -280,7 +284,7 @@ def source_read(app, docname, source):
 
         def linkify(match):
             url = 'https://github.com/pygments/pygments/issues/' + match[1]
-            return '`{} <{}>`_'.format(match[0], url)
+            return f'`{match[0]} <{url}>`_'
 
         linkified = re.sub(r'(?:PR)?#([0-9]+)\b', linkify, changelog[:idx])
         source[0] = linkified + changelog[idx:]

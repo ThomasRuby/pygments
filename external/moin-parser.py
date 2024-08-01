@@ -30,9 +30,17 @@
     If you do not want to do that and are willing to accept larger HTML
     output, you can set the INLINESTYLES option below to True.
 
-    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
+
+import sys
+
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name, get_lexer_for_filename, TextLexer
+from pygments.formatters import HtmlFormatter
+from pygments.util import ClassNotFound
+
 
 # Options
 # ~~~~~~~
@@ -44,13 +52,6 @@ ATTACHMENTS = True
 # Set to True if you want inline CSS styles instead of classes
 INLINESTYLES = False
 
-
-import sys
-
-from pygments import highlight
-from pygments.lexers import get_lexer_by_name, get_lexer_for_filename, TextLexer
-from pygments.formatters import HtmlFormatter
-from pygments.util import ClassNotFound
 
 
 # wrap lines in <span>s so that the Moin-generated line numbers work
@@ -95,7 +96,7 @@ class Parser:
             try:
                 frame = sys._getframe(1)
                 filename = frame.f_locals['filename']
-            except:
+            except Exception:
                 filename = 'x.txt'
         try:
             self.lexer = get_lexer_for_filename(filename)
@@ -104,7 +105,7 @@ class Parser:
 
     def format(self, formatter):
         codeid[0] += 1
-        id = "pygments_%s" % codeid[0]
+        id = f"pygments_{codeid[0]}"
         w = self.req.write
         w(formatter.code_area(1, id, start=1, step=1))
         w(formatter.rawHTML(highlight(self.raw, self.lexer, htmlformatter)))

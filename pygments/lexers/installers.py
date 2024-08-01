@@ -4,7 +4,7 @@
 
     Lexers for installer/packager DSLs and formats.
 
-    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -21,14 +21,13 @@ __all__ = ['NSISLexer', 'RPMSpecLexer', 'SourcesListLexer',
 class NSISLexer(RegexLexer):
     """
     For NSIS scripts.
-
-    .. versionadded:: 1.6
     """
     name = 'NSIS'
     url = 'http://nsis.sourceforge.net/'
     aliases = ['nsis', 'nsi', 'nsh']
     filenames = ['*.nsi', '*.nsh']
     mimetypes = ['text/x-nsis']
+    version_added = '1.6'
 
     flags = re.IGNORECASE
 
@@ -147,14 +146,14 @@ class NSISLexer(RegexLexer):
 class RPMSpecLexer(RegexLexer):
     """
     For RPM ``.spec`` files.
-
-    .. versionadded:: 1.6
     """
 
     name = 'RPMSpec'
     aliases = ['spec']
     filenames = ['*.spec']
     mimetypes = ['text/x-rpm-spec']
+    url = 'https://rpm-software-management.github.io/rpm/manual/spec.html'
+    version_added = '1.6'
 
     _directives = ('(?:package|prep|build|install|clean|check|pre[a-z]*|'
                    'post[a-z]*|trigger[a-z]*|files)')
@@ -221,14 +220,14 @@ class RPMSpecLexer(RegexLexer):
 class SourcesListLexer(RegexLexer):
     """
     Lexer that highlights debian sources.list files.
-
-    .. versionadded:: 0.7
     """
 
     name = 'Debian Sourcelist'
     aliases = ['debsources', 'sourceslist', 'sources.list']
     filenames = ['sources.list']
+    version_added = '0.7'
     mimetype = ['application/x-debian-sourceslist']
+    url = 'https://wiki.debian.org/SourcesList'
 
     tokens = {
         'root': [
@@ -269,31 +268,31 @@ class SourcesListLexer(RegexLexer):
 class DebianControlLexer(RegexLexer):
     """
     Lexer for Debian ``control`` files and ``apt-cache show <pkg>`` outputs.
-
-    .. versionadded:: 0.9
     """
     name = 'Debian Control file'
     url = 'https://www.debian.org/doc/debian-policy/ch-controlfields.html'
     aliases = ['debcontrol', 'control']
     filenames = ['control']
+    version_added = '0.9'
 
     tokens = {
         'root': [
             (r'^(Description)', Keyword, 'description'),
-            (r'^(Maintainer|Uploaders)(:\s*)', bygroups(Keyword, Text),
+            (r'^(Maintainer|Uploaders)(:)(\s*)',
+             bygroups(Keyword, Punctuation, Whitespace),
              'maintainer'),
-            (r'^((?:Build-|Pre-)?Depends(?:-Indep|-Arch)?)(:\s*)',
-             bygroups(Keyword, Text), 'depends'),
-            (r'^(Recommends|Suggests|Enhances)(:\s*)', bygroups(Keyword, Text),
-             'depends'),
-            (r'^((?:Python-)?Version)(:\s*)(\S+)$',
-             bygroups(Keyword, Text, Number)),
-            (r'^((?:Installed-)?Size)(:\s*)(\S+)$',
-             bygroups(Keyword, Text, Number)),
-            (r'^(MD5Sum|SHA1|SHA256)(:\s*)(\S+)$',
-             bygroups(Keyword, Text, Number)),
-            (r'^([a-zA-Z\-0-9\.]*?)(:\s*)(.*?)$',
-             bygroups(Keyword, Whitespace, String)),
+            (r'^((?:Build-|Pre-)?Depends(?:-Indep|-Arch)?)(:)(\s*)',
+             bygroups(Keyword, Punctuation, Whitespace), 'package_list'),
+            (r'^(Recommends|Suggests|Enhances|Breaks|Replaces|Provides|Conflicts)(:)(\s*)',
+             bygroups(Keyword, Punctuation, Whitespace), 'package_list'),
+            (r'^((?:Python-)?Version)(:)(\s*)(\S+)$',
+             bygroups(Keyword, Punctuation, Whitespace, Number)),
+            (r'^((?:Installed-)?Size)(:)(\s*)(\S+)$',
+             bygroups(Keyword, Punctuation, Whitespace, Number)),
+            (r'^(MD5Sum|SHA1|SHA256)(:)(\s*)(\S+)$',
+             bygroups(Keyword, Punctuation, Whitespace, Number)),
+            (r'^([a-zA-Z\-0-9\.]*?)(:)(\s*)(.*?)$',
+             bygroups(Keyword, Punctuation, Whitespace, String)),
         ],
         'maintainer': [
             (r'<[^>]+>$', Generic.Strong, '#pop'),
@@ -309,18 +308,18 @@ class DebianControlLexer(RegexLexer):
             (r' .*\n', Text),
             default('#pop'),
         ],
-        'depends': [
+        'package_list': [
             (r'(\$)(\{)(\w+\s*:\s*\w+)(\})',
              bygroups(Operator, Text, Name.Entity, Text)),
-            (r'\(', Text, 'depend_vers'),
+            (r'\(', Text, 'package_list_vers'),
             (r'\|', Operator),
-            (r',\n', Text),
-            (r'\n', Text, '#pop'),
+            (r'\n\s', Text),
+            (r'\n', Whitespace, '#pop'),
             (r'[,\s]', Text),
             (r'[+.a-zA-Z0-9-]+', Name.Function),
             (r'\[.*?\]', Name.Entity),
         ],
-        'depend_vers': [
+        'package_list_vers': [
             (r'\)', Text, '#pop'),
             (r'([><=]+)(\s*)([^)]+)', bygroups(Operator, Text, Number)),
         ]

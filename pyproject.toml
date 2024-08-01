@@ -1,12 +1,11 @@
 [build-system]
-# setuptools added pyproject.toml support in v61.0.0
-requires = ["setuptools >= 61"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "Pygments"
 dynamic = ["version"]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 license = {text = "BSD-2-Clause"}
 authors = [
   {name = "Georg Brandl", email = "georg@python.org"}
@@ -29,11 +28,11 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
     "Topic :: Text Processing :: Filters",
@@ -41,7 +40,8 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-plugins = ["importlib-metadata;python_version<'3.8'"]
+plugins = [] # kept for backwards compatibility
+windows-terminal = ["colorama >= 0.4.6"]
 
 [project.urls]
 Homepage = "https://pygments.org"
@@ -53,8 +53,20 @@ Changelog = "https://github.com/pygments/pygments/blob/master/CHANGES"
 [project.scripts]
 pygmentize = "pygments.cmdline:main"
 
-[tool.setuptools.dynamic]
-version = {attr = "pygments.__version__" }
+# Temporary workaround for https://github.com/pypa/hatch/issues/1054
+[tool.hatch.build.targets.wheel]
+packages = ["pygments"]
 
-[tool.setuptools.packages.find]
-include = ["pygments", "pygments.*"]
+[tool.hatch.version]
+path = "pygments/__init__.py"
+
+[tool.ruff]
+target-version = "py38"
+lint.extend-select = [
+  "UP",  # "pyupgrade"
+]
+extend-exclude = [
+    # These Python tests are purposefully invalid.
+    "tests/snippets",
+    "tests/examplefiles",
+]

@@ -12,7 +12,7 @@
     The directory must match the alias of the lexer to be used.
     Populate only the input, then just `--update-goldens`.
 
-    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -39,16 +39,22 @@ class LexerTestItem(pytest.Item):
     def _prettyprint_tokens(cls, tokens):
         for tok, val in tokens:
             if tok is Error and not cls.allow_errors:
-                raise ValueError('generated Error token at {!r}'.format(val))
-            yield '{!r:<13} {}'.format(val, str(tok)[6:])
+                raise ValueError(f'generated Error token at {val!r}')
+            yield f'{val!r:<13} {str(tok)[6:]}'
             if val.endswith('\n'):
                 yield ''
 
     def runtest(self):
         lexer = pygments.lexers.get_lexer_by_name(self.lexer)
-        tokens = lexer.get_tokens(self.input)
+        tokens = list(lexer.get_tokens(self.input))
         self.actual = '\n'.join(self._prettyprint_tokens(tokens)).rstrip('\n') + '\n'
-        if not self.config.getoption('--update-goldens'):
+        if self.config.getoption('--update-goldens'):
+            # Make sure the new golden output corresponds to the input.
+            output = ''.join(val for (tok, val) in tokens)
+            preproc_input = lexer._preprocess_lexer_input(self.input) # remove BOMs etc.
+            assert output == preproc_input
+        else:
+            # Make sure the output is the expected golden output
             assert self.actual == self.expected
 
     def _test_file_rel_path(self):
@@ -59,12 +65,18 @@ class LexerTestItem(pytest.Item):
 
     def repr_failure(self, excinfo):
         if isinstance(excinfo.value, AssertionError):
-            rel_path = self._test_file_rel_path()
-            message = (
-                'The tokens produced by the "{}" lexer differ from the '
-                'expected ones in the file "{}".\n'
-                'Run `pytest {} --update-goldens` to update it.'
-            ).format(self.lexer, rel_path, Path(*rel_path.parts[:2]))
+            if self.config.getoption('--update-goldens'):
+                message = (
+                    f'The tokens produced by the "{self.lexer}" lexer '
+                    'do not add up to the input.'
+                )
+            else:
+                rel_path = self._test_file_rel_path()
+                message = (
+                    f'The tokens produced by the "{self.lexer}" lexer differ from the '
+                    f'expected ones in the file "{rel_path}".\n'
+                    f'Run `tox -- {Path(*rel_path.parts[:2])} --update-goldens` to update it.'
+                )
             diff = str(excinfo.value).split('\n', 1)[-1]
             return message + '\n\n' + diff
         else:

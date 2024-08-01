@@ -21,16 +21,9 @@
 
     .. _Markdown: https://pypi.python.org/pypi/Markdown
 
-    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
-
-# Options
-# ~~~~~~~
-
-# Set to True if you want inline CSS styles instead of classes
-INLINESTYLES = False
-
 
 import re
 
@@ -40,6 +33,13 @@ from markdown.extensions import Extension
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import get_lexer_by_name, TextLexer
+
+
+# Options
+# ~~~~~~~
+
+# Set to True if you want inline CSS styles instead of classes
+INLINESTYLES = False
 
 
 class CodeBlockPreprocessor(Preprocessor):
@@ -56,7 +56,7 @@ class CodeBlockPreprocessor(Preprocessor):
                 lexer = TextLexer()
             code = highlight(m.group(2), lexer, self.formatter)
             code = code.replace('\n\n', '\n&nbsp;\n').replace('\n', '<br />')
-            return '\n\n<div class="code">%s</div>\n\n' % code
+            return f'\n\n<div class="code">{code}</div>\n\n'
         joined_lines = "\n".join(lines)
         joined_lines = self.pattern.sub(repl, joined_lines)
         return joined_lines.split("\n")
